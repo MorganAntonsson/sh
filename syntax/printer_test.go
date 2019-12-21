@@ -768,36 +768,61 @@ func TestPrintSwitchCaseIndent(t *testing.T) {
 	}
 }
 
-func TestPrintFunctionNextLine(t *testing.T) {
+func TestPrintKeywordNewLine(t *testing.T) {
 	t.Parallel()
 	tests := [...]printCase{
 		{
-			"foo() { bar; }",
-			"foo()\n{\n\tbar\n}",
+			"if foo; then bar; fi",
+			"if foo\nthen\n\tbar\nfi",
 		},
 		{
-			"foo()\n{ bar; }",
-			"foo()\n{\n\tbar\n}",
+			"if foo; then x; else z; fi",
+			"if foo\nthen\n\tx\nelse\n\tz\nfi",
 		},
 		{
-			"foo()\n\n{\n\n\tbar\n}",
-			"foo()\n{\n\n\tbar\n}",
+			"if foo; then x; elif bar; then y; fi",
+			"if foo\nthen\n\tx\nelif bar\nthen\n\ty\nfi",
 		},
 		{
-			"function foo {\n\tbar\n}",
-			"function foo\n{\n\tbar\n}",
+			"if foo; then x; elif bar; then y; else z; fi",
+			"if foo\nthen\n\tx\nelif bar\nthen\n\ty\nelse\n\tz\nfi",
 		},
 		{
-			"function foo() {\n\tbar\n}",
-			"function foo()\n{\n\tbar\n}",
+			"while x; do y; done",
+			"while x\ndo\n\ty\ndone",
 		},
 		{
-			"{ foo() { bar; }; }",
-			"{\n\tfoo()\n\t{\n\t\tbar\n\t}\n}",
+			"until x; do y; done",
+			"until x\ndo\n\ty\ndone",
+		},
+		{
+			"for i in a b; do bar; done",
+			"for i in a b\ndo\n\tbar\ndone",
+		},
+		{
+			"select i in a b; do bar; done",
+			"select i in a b\ndo\n\tbar\ndone",
 		},
 	}
 	parser := NewParser(KeepComments(true))
-	printer := NewPrinter(FunctionNextLine(true))
+	printer := NewPrinter(KeywordNewLine(true))
+	for i, tc := range tests {
+		t.Run(fmt.Sprintf("%03d", i), func(t *testing.T) {
+			printTest(t, parser, printer, tc.in, tc.want)
+		})
+	}
+}
+
+func TestPrintBraceNewLine(t *testing.T) {
+	t.Parallel()
+	tests := [...]printCase{
+		{
+			"f() { x; }",
+			"f()\n{\n\tx\n}",
+		},
+	}
+	parser := NewParser(KeepComments(true))
+	printer := NewPrinter(BraceNewLine(true))
 	for i, tc := range tests {
 		t.Run(fmt.Sprintf("%03d", i), func(t *testing.T) {
 			printTest(t, parser, printer, tc.in, tc.want)

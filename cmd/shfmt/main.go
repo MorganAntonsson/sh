@@ -44,12 +44,13 @@ var (
 	posix    = flag.Bool("p", false, "")
 	filename = flag.String("filename", "", "")
 
-	indent      = flag.Uint("i", 0, "")
-	binNext     = flag.Bool("bn", false, "")
-	caseIndent  = flag.Bool("ci", false, "")
-	spaceRedirs = flag.Bool("sr", false, "")
-	keepPadding = flag.Bool("kp", false, "")
-	funcNext    = flag.Bool("fn", false, "")
+	indent         = flag.Uint("i", 0, "")
+	binNext        = flag.Bool("bn", false, "")
+	caseIndent     = flag.Bool("ci", false, "")
+	spaceRedirs    = flag.Bool("sr", false, "")
+	keepPadding    = flag.Bool("kp", false, "")
+	keywordNewLine = flag.Bool("knl", false, "")
+	braceNewLine   = flag.Bool("bnl", false, "")
 
 	toJSON = flag.Bool("tojson", false, "")
 
@@ -101,7 +102,8 @@ Printer options:
   -ci       switch cases will be indented
   -sr       redirect operators will be followed by a space
   -kp       keep column alignment paddings
-  -fn       function opening braces are placed on a separate line
+  -knl      place shell keywords like 'then' and 'do' on a new line
+  -bnl      place braces on a new line
 
 Utilities:
 
@@ -137,7 +139,7 @@ For more information, see 'man shfmt' and https://github.com/mvdan/sh.
 	}
 	flag.Visit(func(f *flag.Flag) {
 		switch f.Name {
-		case "ln", "p", "i", "bn", "ci", "sr", "kp", "fn":
+		case "ln", "p", "i", "bn", "ci", "sr", "kp", "knl", "bnl":
 			useEditorConfig = false
 		}
 	})
@@ -159,7 +161,8 @@ For more information, see 'man shfmt' and https://github.com/mvdan/sh.
 		syntax.SwitchCaseIndent(*caseIndent)(printer)
 		syntax.SpaceRedirects(*spaceRedirs)(printer)
 		syntax.KeepPadding(*keepPadding)(printer)
-		syntax.FunctionNextLine(*funcNext)(printer)
+		syntax.KeywordNewLine(*keywordNewLine)(printer)
+		syntax.BraceNewLine(*braceNewLine)(printer)
 	}
 
 	if os.Getenv("FORCE_COLOR") == "true" {
@@ -295,7 +298,8 @@ func propsOptions(props editorconfig.Section) {
 	syntax.SwitchCaseIndent(props.Get("switch_case_indent") == "true")(printer)
 	syntax.SpaceRedirects(props.Get("space_redirects") == "true")(printer)
 	syntax.KeepPadding(props.Get("keep_padding") == "true")(printer)
-	syntax.FunctionNextLine(props.Get("function_next_line") == "true")(printer)
+	syntax.KeywordNewLine(props.Get("keyword_new_line") == "true")(printer)
+	syntax.BraceNewLine(props.Get("brace_new_line") == "true")(printer)
 }
 
 func formatPath(path string, checkShebang bool) error {
